@@ -71,6 +71,12 @@
       box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
     }
     
+    .btn-active-repeat-all {
+      background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+      color: white !important;
+      box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+    }
+    
     .progress-bar {
       background: linear-gradient(90deg, #14b8a6, #10b981, #fbbf24);
       height: 6px;
@@ -255,7 +261,7 @@
               id="repeatBtn" 
               onclick="toggleRepeat()" 
               class="control-btn btn-secondary text-gray-300 hover:text-white"
-              title="Repeat"
+              title="Repeat Mode"
             >
               <i class="fas fa-redo"></i>
             </button>
@@ -280,24 +286,25 @@
       </div>
 
       <!-- Playlist Section (Right) -->
-<div class="playlist-section flex-1">
-  <div class="playlist-container rounded-2xl p-4 h-full bg-gray-800 overflow-hidden">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-bold text-white flex items-center gap-2">
-        <i class="fas fa-list-music text-teal-400"></i>
-        Playlist
-      </h2>
-      <div class="text-sm text-gray-400">
-        <span id="songCount">0</span> lagu
+      <div class="playlist-section flex-1">
+        <div class="playlist-container rounded-2xl p-4 h-full bg-gray-800 overflow-hidden">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fas fa-list-music text-teal-400"></i>
+              Playlist
+            </h2>
+            <div class="text-sm text-gray-400">
+              <span id="songCount">0</span> lagu
+            </div>
+          </div>
+
+          <div class="overflow-y-auto max-h-[calc(100vh-300px)] pr-2 custom-scrollbar">
+            <ul id="playlist" class="space-y-3 box-border w-full"></ul>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="overflow-y-auto max-h-[calc(100vh-300px)] pr-2 custom-scrollbar">
-      <ul id="playlist" class="space-y-3 box-border w-full"></ul>
-    </div>
   </div>
-</div>
-
 
   <script>
     const audio = document.getElementById('audio');
@@ -336,7 +343,7 @@
     ];
 
     let currentIndex = 0;
-    let isRepeat = false;
+    let repeatMode = 'none'; // 'none', 'one', 'all'
     let isShuffle = false;
     let isPlaying = false;
 
@@ -437,13 +444,25 @@
     }
 
     function toggleRepeat() {
-      isRepeat = !isRepeat;
-      if (isRepeat) {
+      // Cycle through repeat modes: none -> one -> all -> none
+      if (repeatMode === 'none') {
+        repeatMode = 'one';
         repeatBtn.classList.add('btn-active-repeat');
-        repeatBtn.classList.remove('btn-secondary');
+        repeatBtn.classList.remove('btn-secondary', 'btn-active-repeat-all');
+        repeatBtn.innerHTML = '<i class="fas fa-redo"></i>';
+        repeatBtn.title = 'Repeat One';
+      } else if (repeatMode === 'one') {
+        repeatMode = 'all';
+        repeatBtn.classList.add('btn-active-repeat-all');
+        repeatBtn.classList.remove('btn-secondary', 'btn-active-repeat');
+        repeatBtn.innerHTML = '<i class="fas fa-redo"></i><i class="fas fa-infinity" style="font-size: 0.6em; margin-left: -8px; margin-top: -8px;"></i>';
+        repeatBtn.title = 'Repeat All';
       } else {
-        repeatBtn.classList.remove('btn-active-repeat');
+        repeatMode = 'none';
         repeatBtn.classList.add('btn-secondary');
+        repeatBtn.classList.remove('btn-active-repeat', 'btn-active-repeat-all');
+        repeatBtn.innerHTML = '<i class="fas fa-redo"></i>';
+        repeatBtn.title = 'No Repeat';
       }
     }
 
@@ -519,13 +538,37 @@
       }
     }
 
-    // Event Listeners
+    // Enhanced Event Listeners
     audio.addEventListener('ended', () => {
-      if (isRepeat) {
+      if (repeatMode === 'one') {
+        // Repeat current song
         audio.currentTime = 0;
         audio.play();
+      } else if (repeatMode === 'all') {
+        // Play next song, and if it's the last song, start from the beginning
+        if (isShuffle) {
+          currentIndex = Math.floor(Math.random() * songs.length);
+        } else {
+          currentIndex = (currentIndex + 1) % songs.length;
+        }
+        loadSong(currentIndex);
+        audio.play();
       } else {
-        nextSong();
+        // Default behavior: play next song, but stop at the end of playlist
+        if (isShuffle) {
+          currentIndex = Math.floor(Math.random() * songs.length);
+          loadSong(currentIndex);
+          audio.play();
+        } else if (currentIndex < songs.length - 1) {
+          // Not the last song, play next
+          currentIndex++;
+          loadSong(currentIndex);
+          audio.play();
+        } else {
+          // Last song, stop playing
+          isPlaying = false;
+          playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
       }
     });
 
