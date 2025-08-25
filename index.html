@@ -157,7 +157,13 @@
       height: 70px;
       font-size: 1.8rem;
     }
+
+    .playlist-scroll {
+      max-height: 650px;
+      overflow-y: auto;
+    }
   </style>
+  
 </head>
 <body class="text-white">
   <div class="container mx-auto px-4 py-6 max-w-7xl">
@@ -287,7 +293,7 @@
 
       <!-- Playlist Section (Right) -->
       <div class="playlist-section flex-1">
-        <div class="playlist-container rounded-2xl p-4 h-full bg-gray-800 overflow-hidden">
+        <div class="playlist-container rounded-2xl p-4 h-full bg-gray-800 overflow-auto">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
               <i class="fas fa-list-music text-teal-400"></i>
@@ -298,7 +304,7 @@
             </div>
           </div>
 
-          <div class="overflow-y-auto max-h-[calc(100vh-300px)] pr-2 custom-scrollbar">
+          <div class="playlist-scroll pr-2 custom-scrollbar">
             <ul id="playlist" class="space-y-3 box-border w-full"></ul>
           </div>
         </div>
